@@ -1,0 +1,15 @@
+# Local-only artifacts
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+.env.*
+!.env.example
+.market_cache*.json
+.report_index*.json
+INSTALL_LOG.txt
+RUN_LOG.txt
+DIAGNOSIS*.txt
+.DS_Store

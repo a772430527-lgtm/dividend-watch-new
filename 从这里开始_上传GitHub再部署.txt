@@ -1,0 +1,7 @@
+1. 完整解压本ZIP。
+2. 将解压的全部文件上传至你创建的 GitHub 仓库根目录。
+3. Render > New > Web Service，连接仓库。
+4. Build: pip install -r requirements.txt
+5. Start: uvicorn deploy_app:app --host 0.0.0.0 --port $PORT
+6. 选择 Free，可选添加 DASHBOARD_PASSWORD 密码。
+7. 查看 README_云端部署.md 完整说明。
