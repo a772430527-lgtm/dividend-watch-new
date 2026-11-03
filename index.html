@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>股息率观察与财报分析工具</title>
+<link rel="stylesheet" href="/static/style.css"/></head>
+<body><div id="app">
+<header class="top"><div class="brand"><span class="brandIcon">▥</span><div><h1>股息率观察<span>与财报分析</span></h1><div class="subtitle">42只高股息观察标的 · 后复权BOLL · 最新财报自动索引</div></div></div><div class="topRight"><div class="tagHFQ">日 / 周 / 月 BOLL：<b>腾讯/东财双源 HFQ</b></div><a target="_blank" rel="noopener" href="https://github.com/simonlin1212/a-stock-data">开源数据源 ↗</a></div></header>
+<section class="toolbar">
+<div class="search"><span>⌕</span><input id="search" placeholder="搜索股票名称 / 代码 / 行业" autocomplete="off"></div>
+<select id="industry"><option value="">全部行业</option></select>
+<select id="poolFilter" title="按股票来源分组查看"><option value="">全部42只</option><option value="new_soe">新增央国企7只</option><option value="nuclear">双核电2只</option><option value="existing">原有33只</option><option value="new_all">全部新增9只</option></select>
+<select id="sort"><option value="yield">RLY股息率 ↓</option><option value="percentile">历史分位 ↓</option><option value="name">名称顺序</option><option value="change">今日涨幅 ↓</option></select>
+<label class="checkline"><input type="checkbox" id="resonanceOnly"> ★ 仅低位共振</label>
+<button id="updateQuote" class="btn secondary" title="只刷新最新现价；要同步BOLL与共振请切换来源或点击更新全部">刷新报价</button>
+<button id="refreshBollSignals" class="btn secondary" title="只刷新42只BOLL和低位共振，不重复查询财报分红">↻ 更新BOLL与共振</button><button id="refreshAll" class="btn primary">↻ 更新全部 42 只</button>
+<button id="refreshReports" class="btn secondary" title="独立刷新42只股票的最近定期报告与官方PDF链接，不影响行情/BOLL">↻ 更新42只最新财报</button>
+<a class="btn secondary" href="/api/export.csv">导出 CSV</a>
+</section>
+<div class="statusbar"><div class="statusLeft"><span class="pulse" id="pulse"></span><span id="status">等待联网获取行情</span><span id="updated">—</span><span id="reportJobStatus" class="reportProgress">财报索引：待同步</span></div><div><span class="highlight">42</span> 只观察股票 · <span class="muted">交易时段行情可能有延迟</span></div></div>
+<main class="layout"><section class="listPanel">
+<div class="panelHeadline"><div><strong>高股息观察列表</strong><span class="small">以真实行情为准，缺失数据展示「—」</span></div><div id="count" class="count">42 个标的</div></div>
+<div class="tablewrap"><table><thead><tr><th class="stock">股票 / 代码</th><th>现价 / 涨跌</th><th>RLY宣告<br/>股息率</th><th>10年<br/>历史分位</th><th>布林通道（HFQ）<br/><small>日&nbsp;&nbsp;周&nbsp;&nbsp;月</small></th><th>共振</th><th>最近财报<br/><small>披露日期</small></th><th class="op">操作</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="tableFoot"><div>观察池：原33只 + 双核电2只 + 央企5只 + 地方国企2只；央国企候选的市值与连续分红年限需按最新数据复核，不视作永久达标。</div><div>股息率：<b>最新已宣告末期分红 + 最新已公告中期分红（待定时标记沿用上期）÷ 原始现价</b>。单位为每10股派息÷10。</div><div>分位：逐周历史RLY同口径估算（不采用HFQ作分母） · 历史更正、送转复权可能导致与原作者不同</div></div>
+</section>
+<aside class="details"><div class="rightHead"><div class="selectedTitle"><div class="codeTitle"><span id="selectedName">选择股票</span> <small id="selectedCode">—</small></div><div id="selectedIndustry" class="muted">点击左侧股票查看详情</div></div><div class="headPrice"><b id="selectedPrice">—</b><div id="selectedChange">—</div></div></div>
+<div class="detailActions"><button class="btn primary" id="financialBtn">↻ 更新本股财报</button><button class="btn secondary" id="dividendBtn">分红明细</button><button class="btn secondary" id="bollBtn">刷新本股BOLL+共振</button></div>
+<div class="pillbar"><span class="pill">后复权 ✓</span><span class="pill gray">BOLL五档中部边界为约定阈值 ±1σ</span><span id="reportPeriod" class="pill gray">财报未读取</span></div>
+<div class="rightSection"><div class="sectionTitle"><strong>核心观察指标</strong><span id="metricStamp" class="muted tiny">—</span></div><div class="metricGrid"><div class="metric"><small>RLY宣告股息率</small><b class="gold" id="mYield">—</b><em id="mYieldBasis">末期 + 中期 · 公告口径</em></div><div class="metric"><small>历史股息率分位</small><b id="mPercentile">—</b><em id="mSamples">近10年历史周样本</em></div><div class="metric"><small>月 / 周线共振</small><b id="mResonance">—</b><em>周线及月线均为中/中下 · HFQ自动同步</em></div></div></div>
+<div class="rightSection"><div class="sectionTitle"><strong>BOLL 布林通道 · HFQ</strong><span class="muted tiny">20期MA ± 2σ</span></div><div class="auditBar">
+<label>HFQ 数据源 <select id="bollSource"><option value="eastmoney">东方财富（fqt=2）</option><option value="tencent">腾讯财经（hfqday）</option></select></label>
+<label>对照日期 <input type="date" id="auditDate" value="2026-11-03"/></label>
+<button class="btn secondary" id="auditBtn">核对三轨与20根K线</button>
+<button class="btn primary" id="compareBtn">双源并排校验</button>
+<span class="muted tiny">参考截图为 11月3日 14:45 盘中；日K接口可能仅提供收盘或更新延迟，不能保证重现盘中瞬时数值。</span>
+</div><div id="compareResult" class="auditResult" hidden></div><div id="auditResult" class="auditResult" hidden></div><div class="bollrow" id="bollrow"></div><div id="bollNumbers" class="bollNumbers">点击左侧标的，查看日/周/月各周期的后复权价及上中下轨。</div><div class="chartLegend"><span class="chartLegendPrice">● 后复权收盘</span><span class="chartLegendUp">━ 上轨</span><span class="chartLegendMid">━ 中轨</span><span class="chartLegendLow">━ 下轨</span></div><div class="chartnav"><button class="active" data-period="day">日线</button><button data-period="week">周线</button><button data-period="month">月线</button><span>HFQ 收盘价</span></div><div class="chartbox"><canvas id="priceChart" width="780" height="300"></canvas><div id="chartPlaceholder" class="chartPlaceholder">请点击“更新全部”或“刷新HFQ BOLL”获取真实K线</div></div><div class="tiny muted">图中四条线来自同一数据商的 HFQ K 线。后复权因子在腾讯/东财之间可能不同；数值对不上时先核对数据源、K线截止日期与盘中/盘后，勿直接用未复权现价判断五档。切换数据源后自动清空旧信号并重新同步42只BOLL和低位共振；数据不足显示「待计算」。</div></div>
+<div class="rightSection" id="reportZone"><div class="sectionTitle"><strong>最新财报分析入口</strong><span class="muted tiny">巨潮最新PDF · 新浪财务报表；标明各自报告期</span></div><div class="latestReport" id="latestReportBox"><div class="textMuted">正在确认这只股票的最近定期报告与PDF原文……</div></div><div id="reportViewer" class="reportViewer" hidden><div class="reportViewerHead"><b>本地预览 · 巨潮财报PDF</b><button id="closeReportViewer" class="btn secondary">关闭预览</button></div><iframe id="reportFrame" title="巨潮资讯PDF原文预览" loading="lazy"></iframe></div><div id="reportText" class="textMuted">点击股票后自动读取最新披露的财报和财务数据。</div><div id="financialMetrics" class="finMetrics"></div><div id="reportLinks" class="reportLinks"></div></div>
+<div class="rightSection" id="dividendZone"><div class="sectionTitle"><strong>分红方案与RLY计算明细</strong><span class="muted tiny">东方财富 · 预案公告 / 除息日期</span></div><div id="rlyBreakdown" class="rlyBreakdown textMuted">点击「更新全部42只」获取实际公告分红并核对计算过程。</div><div id="dividendText" class="textMuted">点击「历年分红」读取每10股派息、每股派息、报告期及公告日期。</div><div class="tiny muted" style="margin-top:9px"><a class="linkAnchor" id="sourceDividend" href="https://data.eastmoney.com/yjfp" target="_blank" rel="noopener">前往东方财富原始分红公告 ↗</a></div></div>
+<div class="rightSection"><div class="sectionTitle"><strong>BOLL 五档与颜色（严格按图）</strong></div><div class="levelLegend"><span class="levelTag level-up">上 · ≥上轨</span><span class="levelTag level-upper">中上</span><span class="levelTag level-mid">中</span><span class="levelTag level-lower">中下</span><span class="levelTag level-down">下 · ≤下轨</span></div><div class="textMuted tiny" style="margin-top:8px">中上：中轨+1σ至上轨；中：中轨±1σ；中下：下轨至中轨−1σ。边界中轨±1σ计入「中」。</div></div><div class="rightSection"><div class="sectionTitle"><strong>口径说明</strong></div><div class="glossary"><div><b>后复权HFQ</b> 历史价格按公司行动向后复权；只用于BOLL。</div><div><b>RLY宣告股息率</b> 以报告期分组，最近年度末期已公告派息 + 最近中期已公告派息，换算每股并除以未复权股价；本年度中期待定可沿用上期并单独提示。</div><div><b>历史分位</b> 约10年的每周 RLY 同口径回溯估算，缺少有效公告日或样本不足显示「—」。</div><div><b>低位共振</b> 只有周线与月线同时处于「中」或「中下」才亮星；「下」不计入，日线不参与。切换来源会自动重算；任一周期缺失显示「待计算」，不会误判成「否」。</div></div></div>
+</aside></main>
+<footer>数据来自公开第三方接口，可能延时、缺失或被限流。<b>财报及股息率不能替代投资判断。</b> 本工具本地运行，不需要账号或 API Key。图示数据不会当作行情导入。</footer>
+</div><script src="/static/app.js?v=10"></script></body></html>
